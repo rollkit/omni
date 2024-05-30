@@ -19,7 +19,6 @@ import (
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/proxy"
-	rpclocal "github.com/cometbft/cometbft/rpc/client/local"
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	"cosmossdk.io/store"
@@ -31,6 +30,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	sdktelemetry "github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/cosmos/cosmos-sdk/types/mempool"
+
+	rollconf "github.com/rollkit/rollkit/config"
+	rollnode "github.com/rollkit/rollkit/node"
+	rollrpc "github.com/rollkit/rollkit/rpc"
+	rolltypes "github.com/rollkit/rollkit/types"
 )
 
 // Config wraps the halo (app) and comet (client) configurations.
@@ -141,7 +145,18 @@ func Start(ctx context.Context, cfg Config) (<-chan error, func(context.Context)
 		return nil, nil, errors.Wrap(err, "create comet node")
 	}
 
-	rpcClient := rpclocal.New(cmtNode)
+	cmtLog, err := newCmtLogger(ctx, cfg.Comet.LogLevel)
+	if err != nil {
+		return nil, err
+	}
+
+	server := rollrpc.NewServer(cmtNode, cfg.Comet.RPC, cmtLog)
+	err = server.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	rpcClient := server.Client()
 	cmtAPI := comet.NewAPI(rpcClient)
 	app.SetCometAPI(cmtAPI)
 
@@ -164,8 +179,6 @@ func Start(ctx context.Context, cfg Config) (<-chan error, func(context.Context)
 		}
 	}()
 
-	log.Info(ctx, "Starting CometBFT", "listeners", cmtNode.Listeners())
-
 	if err := cmtNode.Start(); err != nil {
 		return nil, nil, errors.Wrap(err, "start comet node")
 	}
@@ -179,7 +192,7 @@ func Start(ctx context.Context, cfg Config) (<-chan error, func(context.Context)
 		if err := cmtNode.Stop(); err != nil {
 			return errors.Wrap(err, "stop comet node")
 		}
-		cmtNode.Wait()
+		// cmtNode.Wait()
 
 		// Note that cometBFT doesn't shut down cleanly. It leaves a bunch of goroutines running...
 
@@ -192,7 +205,7 @@ func Start(ctx context.Context, cfg Config) (<-chan error, func(context.Context)
 }
 
 func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmttypes.PrivValidator,
-) (*node.Node, error) {
+) (rollnode.Node, error) {
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
 		return nil, errors.Wrap(err, "load or gen node key", "key_file", cfg.NodeKeyFile())
@@ -203,6 +216,7 @@ func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmt
 		return nil, err
 	}
 
+<<<<<<< HEAD
 	wrapper := newABCIWrapper(
 		server.NewCometABCIWrapper(app),
 		app.EVMEngKeeper.Finalize,
@@ -215,6 +229,43 @@ func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmt
 		node.DefaultGenesisDocProviderFunc(cfg),
 		cmtcfg.DefaultDBProvider,
 		node.DefaultMetricsProvider(cfg.Instrumentation),
+=======
+	log.Info(ctx, "starting node with Rollkit in-process")
+
+	pval := privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
+
+	//keys in Rollkit format
+	p2pKey, err := rolltypes.GetNodeKey(nodeKey)
+	if err != nil {
+		return nil, err
+	}
+
+	signingKey, err := rolltypes.GetNodeKey(&p2p.NodeKey{PrivKey: pval.Key.PrivKey})
+	if err != nil {
+		return nil, err
+	}
+
+	nodeConfig := rollconf.NodeConfig{}
+	rollconf.GetNodeConfig(&nodeConfig, cfg)
+	err = rollconf.TranslateAddresses(&nodeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	genDoc, err := node.DefaultGenesisDocProviderFunc(cfg)()
+	if err != nil {
+		return nil, errors.Wrap(err, "load genesis doc")
+	}
+
+	cmtNode, err := rollnode.NewNode(
+		ctx,
+		nodeConfig,
+		p2pKey,
+		signingKey,
+		proxy.NewLocalClientCreator(loggingABCIApp{server.NewCometABCIWrapper(app)}),
+		genDoc,
+		rollnode.DefaultMetricsProvider(cfg.Instrumentation),
+>>>>>>> ee0bbcaa (change comet to rollkit)
 		cmtLog,
 	)
 	if err != nil {
