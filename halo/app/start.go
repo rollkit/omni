@@ -25,6 +25,7 @@ import (
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	"cosmossdk.io/store/snapshots"
 	snapshottypes "cosmossdk.io/store/snapshots/types"
+	pvm "github.com/cometbft/cometbft/privval"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -147,13 +148,13 @@ func Start(ctx context.Context, cfg Config) (<-chan error, func(context.Context)
 
 	cmtLog, err := newCmtLogger(ctx, cfg.Comet.LogLevel)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	server := rollrpc.NewServer(cmtNode, cfg.Comet.RPC, cmtLog)
 	err = server.Start()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	rpcClient := server.Client()
@@ -232,7 +233,7 @@ func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmt
 =======
 	log.Info(ctx, "starting node with Rollkit in-process")
 
-	pval := privval.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
+	pval := pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
 
 	//keys in Rollkit format
 	p2pKey, err := rolltypes.GetNodeKey(nodeKey)
