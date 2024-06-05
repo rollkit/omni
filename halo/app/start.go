@@ -217,20 +217,11 @@ func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmt
 		return nil, err
 	}
 
-<<<<<<< HEAD
 	wrapper := newABCIWrapper(
 		server.NewCometABCIWrapper(app),
 		app.EVMEngKeeper.Finalize,
 	)
 
-	cmtNode, err := node.NewNode(cfg,
-		privVal,
-		nodeKey,
-		proxy.NewLocalClientCreator(wrapper),
-		node.DefaultGenesisDocProviderFunc(cfg),
-		cmtcfg.DefaultDBProvider,
-		node.DefaultMetricsProvider(cfg.Instrumentation),
-=======
 	log.Info(ctx, "starting node with Rollkit in-process")
 
 	pval := pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
@@ -263,10 +254,9 @@ func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmt
 		nodeConfig,
 		p2pKey,
 		signingKey,
-		proxy.NewLocalClientCreator(loggingABCIApp{server.NewCometABCIWrapper(app)}),
+		proxy.NewLocalClientCreator(wrapper),
 		genDoc,
 		rollnode.DefaultMetricsProvider(cfg.Instrumentation),
->>>>>>> ee0bbcaa (change comet to rollkit)
 		cmtLog,
 	)
 	if err != nil {
