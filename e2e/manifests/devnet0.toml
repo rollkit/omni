@@ -2,7 +2,7 @@
 # This is aimed at local dev environments.
 
 network = "devnet"
-anvil_chains = ["mock_op", "mock_arb"]
+#anvil_chains = ["mock_op", "mock_arb"]
 
 explorer = true
 

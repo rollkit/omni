@@ -58,7 +58,7 @@ type DefinitionConfig struct {
 // DefaultDefinitionConfig returns a default configuration for a Definition.
 func DefaultDefinitionConfig(ctx context.Context) DefinitionConfig {
 	defaultTag := "main"
-	if out, err := exec.CommandOutput(ctx, "git", "rev-parse", "--short=7", "HEAD"); err == nil {
+	if out, err := exec.CommandOutput(ctx, "git", "rev-parse", "--short=8", "HEAD"); err == nil {
 		defaultTag = strings.TrimSpace(string(out))
 	}
 

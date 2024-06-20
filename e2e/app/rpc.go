@@ -28,7 +28,7 @@ func waitForHeight(ctx context.Context, testnet *e2e.Testnet, height int64) (*ty
 	currentBlock := func(ctx context.Context, client *rpchttp.HTTP) (*rpctypes.ResultBlock, error) {
 		ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 		defer cancel()
-		resp, err := client.Block(ctx, nil)
+		resp, err := client.Block(ctx, &height)
 		if err != nil {
 			return nil, errors.Wrap(err, "get block")
 		}

@@ -18,14 +18,13 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
-	cmttypes "github.com/cometbft/cometbft/types"
 
 	"cosmossdk.io/store"
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	"cosmossdk.io/store/snapshots"
 	snapshottypes "cosmossdk.io/store/snapshots/types"
-	pvm "github.com/cometbft/cometbft/privval"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -205,7 +204,7 @@ func Start(ctx context.Context, cfg Config) (<-chan error, func(context.Context)
 	}, nil
 }
 
-func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmttypes.PrivValidator,
+func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal *privval.FilePV,
 ) (rollnode.Node, error) {
 	nodeKey, err := p2p.LoadOrGenNodeKey(cfg.NodeKeyFile())
 	if err != nil {
@@ -224,21 +223,24 @@ func newCometNode(ctx context.Context, cfg *cmtcfg.Config, app *App, privVal cmt
 
 	log.Info(ctx, "starting node with Rollkit in-process")
 
-	pval := pvm.LoadOrGenFilePV(cfg.PrivValidatorKeyFile(), cfg.PrivValidatorStateFile())
-
 	//keys in Rollkit format
 	p2pKey, err := rolltypes.GetNodeKey(nodeKey)
 	if err != nil {
 		return nil, err
 	}
 
-	signingKey, err := rolltypes.GetNodeKey(&p2p.NodeKey{PrivKey: pval.Key.PrivKey})
+	signingKey, err := rolltypes.GetNodeKey(&p2p.NodeKey{PrivKey: privVal.Key.PrivKey})
 	if err != nil {
 		return nil, err
 	}
 
 	nodeConfig := rollconf.NodeConfig{}
 	rollconf.GetNodeConfig(&nodeConfig, cfg)
+
+	// add rollkit configs
+	nodeConfig.Aggregator = true
+	nodeConfig.DAAddress = "http://10.186.73.207:7980"
+
 	err = rollconf.TranslateAddresses(&nodeConfig)
 	if err != nil {
 		return nil, err

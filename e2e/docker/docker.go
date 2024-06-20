@@ -88,6 +88,7 @@ func (p *Provider) Setup() error {
 		Anvils:      p.testnet.AnvilChains,
 		Relayer:     true,
 		Prometheus:  p.testnet.Prometheus,
+		DA:          true,
 		Monitor:     true,
 		Explorer:    p.testnet.Explorer,
 		ExplorerDB:  p.testnet.Explorer && p.testnet.Network.IsEphemeral(),
@@ -176,6 +177,7 @@ type ComposeDef struct {
 	OmniEVMs []types.OmniEVM
 	Anvils   []types.AnvilChain
 
+	DA         bool
 	Monitor    bool
 	OmniTag    string
 	Relayer    bool
@@ -291,6 +293,8 @@ func additionalServices(testnet types.Testnet) []string {
 		resp = append(resp, anvil.Chain.Name)
 	}
 	resp = append(resp, "relayer")
+
+	resp = append(resp, "da")
 
 	if testnet.Explorer {
 		resp = append(resp, "explorer_indexer")

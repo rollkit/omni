@@ -37,7 +37,7 @@ func DefaultCometConfig(homeDir string) cfg.Config {
 
 	conf.RootDir = homeDir
 	conf.SetRoot(conf.RootDir)
-	conf.LogLevel = "error"                            // Decrease default comet log level, it is super noisy.
+	conf.LogLevel = "info"                             // Decrease default comet log level, it is super noisy.
 	conf.TxIndex = &cfg.TxIndexConfig{Indexer: "null"} // Disable tx indexing.
 	conf.StateSync.DiscoveryTime = time.Second * 10    // Increase discovery time
 	conf.StateSync.ChunkRequestTimeout = time.Minute   // Increase timeout

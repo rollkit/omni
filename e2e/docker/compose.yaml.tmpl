@@ -88,6 +88,20 @@ services:
         {{ if $.Network }}ipv4_address: {{ .AdvertisedIP }}{{ end }}
 {{end}}
 
+{{- if .DA }}
+  da:
+    labels:
+      e2e: true
+    container_name: da
+    image: gupadhyaya/local-da:latest
+    restart: unless-stopped # Restart on crash to mitigate startup race issues
+    volumes:
+      - ./da:/da
+    networks:
+      {{ $.NetworkName }}:
+        {{ if $.Network }}ipv4_address: 10.186.73.207{{ end }}
+{{ end }}
+
 {{- if .Relayer }}
   relayer:
     labels:

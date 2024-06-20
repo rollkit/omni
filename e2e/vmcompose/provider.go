@@ -91,6 +91,7 @@ func (p *Provider) Setup() error {
 			OmniEVMs:    omniEVMs,
 			Anvils:      anvilChains,
 			Relayer:     services["relayer"],
+			DA:          true,
 			Monitor:     services["monitor"],
 			Prometheus:  p.Testnet.Prometheus,
 			OmniTag:     p.omniTag,

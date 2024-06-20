@@ -89,6 +89,16 @@ halo-simnet: ## Runs halo in simnet mode.
 	@halo init --home=/tmp/halo --network=simnet --clean
 	@halo run --home=/tmp/halo
 
+.PHONY: devnet-zero-deploy
+devnet-zero-deploy: ## Deploys devnet1
+	@echo "Creating a docker-compose devnet in ./e2e/run/devnet0"
+	@go run github.com/omni-network/omni/e2e -f e2e/manifests/devnet0.toml deploy
+
+.PHONY: devnet-zero-clean
+devnet-zero-clean: ## Deletes devnet1 containers
+	@echo "Stopping the devnet in ./e2e/run/devnet0"
+	@go run github.com/omni-network/omni/e2e -f e2e/manifests/devnet0.toml clean
+
 .PHONY: devnet-deploy
 devnet-deploy: ## Deploys devnet1
 	@echo "Creating a docker-compose devnet in ./e2e/run/devnet1"

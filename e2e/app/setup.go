@@ -34,6 +34,7 @@ import (
 	"github.com/cometbft/cometbft/p2p"
 	"github.com/cometbft/cometbft/privval"
 	e2e "github.com/cometbft/cometbft/test/e2e/pkg"
+	cmtypes "github.com/cometbft/cometbft/types"
 
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 
@@ -75,6 +76,16 @@ func Setup(ctx context.Context, def Definition, depCfg DeployConfig) error {
 	if err != nil {
 		return errors.Wrap(err, "make genesis")
 	}
+
+	cosmosGenesis.Consensus.Validators = []cmtypes.GenesisValidator{
+		{
+			Name:    "Rollkit Sequencer",
+			Address: vals[0].Address(),
+			PubKey:  vals[0],
+			Power:   1,
+		},
+	}
+
 	cmtGenesis, err := cosmosGenesis.ToGenesisDoc()
 	if err != nil {
 		return errors.Wrap(err, "convert genesis")
