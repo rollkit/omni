@@ -93,7 +93,7 @@ services:
     labels:
       e2e: true
     container_name: da
-    image: gupadhyaya/local-da:latest
+    image: ghcr.io/rollkit/local-da:latest
     restart: unless-stopped # Restart on crash to mitigate startup race issues
     volumes:
       - ./da:/da
